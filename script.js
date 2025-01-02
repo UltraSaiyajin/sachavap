@@ -17,30 +17,26 @@ const db = getFirestore(app);
 
 // Charger les produits depuis Firestore
 async function chargerProduits() {
-  const produitsRef = collection(db, "produits");
-  const snapshot = await getDocs(produitsRef);
-  const produits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-  const tableBody = document.querySelector("#produits-table tbody");
-  tableBody.innerHTML = ""; // Réinitialiser le tableau
-  const produitSelect = document.querySelector("#produit");
-  produitSelect.innerHTML = ""; // Réinitialiser le dropdown
-
-  produits.forEach(produit => {
-    // Ajouter une ligne au tableau
-    const row = `
-      <tr>
-        <td>${produit.nom}</td>
-        <td>${produit.quantite}</td>
-      </tr>
-    `;
-    tableBody.insertAdjacentHTML("beforeend", row);
-
-    // Ajouter une option au dropdown
-    const option = `<option value="${produit.id}">${produit.nom}</option>`;
-    produitSelect.insertAdjacentHTML("beforeend", option);
-  });
-}
+    const produitsRef = collection(db, "produits");
+    const snapshot = await getDocs(produitsRef);
+    const produits = snapshot.docs.map(doc => ({
+      id: doc.id, // Utiliser l'ID comme nom
+      ...doc.data()
+    }));
+  
+    const tableBody = document.querySelector("#produits-table tbody");
+    tableBody.innerHTML = "";
+  
+    produits.forEach(produit => {
+      const row = `
+        <tr>
+          <td>${produit.id}</td> <!-- Utiliser l'ID ici -->
+          <td>${produit.quantite}</td>
+        </tr>
+      `;
+      tableBody.insertAdjacentHTML("beforeend", row);
+    });
+  }
 
 // Mettre à jour la marge totale dans Firestore
 async function incrementerMarge(marge) {
