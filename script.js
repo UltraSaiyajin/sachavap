@@ -1,116 +1,104 @@
-// script.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js";
 
-// Initialisation des données
-let produits = JSON.parse(localStorage.getItem('produits')) || [
-    { id: 1, nom: 'Lush Ice', quantite: 200, prixAchat: 4 },
-    { id: 2, nom: 'Lucid Dream', quantite: 130, prixAchat: 4 },
-    { id: 3, nom: 'Blueberry Bubblegum', quantite: 130, prixAchat: 4 },
-    { id: 4, nom: 'Two Apple', quantite: 300, prixAchat: 4 },
-    { id: 5, nom: 'Magic Love', quantite: 70, prixAchat: 4 },
-    { id: 6, nom: 'Grape Mint', quantite: 150, prixAchat: 4 },
-    { id: 7, nom: 'Gum Mint', quantite: 100, prixAchat: 4 },
-    { id: 8, nom: 'Peach Ice', quantite: 170, prixAchat: 4 },
-  ];
-  let ventes = JSON.parse(localStorage.getItem('ventes')) || [];
-let totalMarge = parseFloat(localStorage.getItem('totalMarge')) || 0; // Charger la marge depuis localStorage
-let logs = JSON.parse(localStorage.getItem('logs')) || [];
+// Configuration Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyD9iuzpUaZq06tTyuEkZHFcNC3AVp18anA",
+    authDomain: "sachavap-44007.firebaseapp.com",
+    projectId: "sachavap-44007",
+    storageBucket: "sachavap-44007.firebasestorage.app",
+    messagingSenderId: "928067730354",
+    appId: "1:928067730354:web:52b306f821d1f9810742ab"
+  };
 
-// Fonction pour afficher les produits
-function afficherProduits() {
-  const tableBody = document.querySelector('#produits-table tbody');
-  tableBody.innerHTML = '';
-  produits.forEach((produit) => {
+// Initialisation Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Charger les produits depuis Firestore
+async function chargerProduits() {
+  const produitsRef = collection(db, "produits");
+  const snapshot = await getDocs(produitsRef);
+  const produits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  const tableBody = document.querySelector("#produits-table tbody");
+  tableBody.innerHTML = ""; // Réinitialiser le tableau
+  const produitSelect = document.querySelector("#produit");
+  produitSelect.innerHTML = ""; // Réinitialiser le dropdown
+
+  produits.forEach(produit => {
+    // Ajouter une ligne au tableau
     const row = `
       <tr>
         <td>${produit.nom}</td>
         <td>${produit.quantite}</td>
       </tr>
     `;
-    tableBody.insertAdjacentHTML('beforeend', row);
-  });
+    tableBody.insertAdjacentHTML("beforeend", row);
 
-  // Mise à jour du select pour les ventes
-  const produitSelect = document.querySelector('#produit');
-  produitSelect.innerHTML = '';
-  produits.forEach((produit) => {
+    // Ajouter une option au dropdown
     const option = `<option value="${produit.id}">${produit.nom}</option>`;
-    produitSelect.insertAdjacentHTML('beforeend', option);
+    produitSelect.insertAdjacentHTML("beforeend", option);
   });
 }
 
-// Fonction pour ajouter une nouvelle entrée de log
-function ajouterLog(produit, quantite, prix, marge) {
-  const date = new Date().toLocaleString();
-  const logEntry = `Date: ${date}, Produit: ${produit.nom}, Quantité: ${quantite}, Prix unitaire: ${prix}, Marge: ${marge.toFixed(2)}€`;
-  logs.push(logEntry);
-
-  // Stocker les logs dans localStorage
-  localStorage.setItem('logs', JSON.stringify(logs));
+// Mettre à jour la marge totale dans Firestore
+async function incrementerMarge(marge) {
+  const statsRef = doc(db, "stats", "globalStats");
+  await updateDoc(statsRef, {
+    margeTotale: increment(marge),
+  });
 }
 
-// Fonction pour générer le fichier de logs
-function telechargerLogs() {
-  const logContent = logs.join('\n');
-  const blob = new Blob([logContent], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'logs.txt';
-  a.click();
-  URL.revokeObjectURL(url); // Nettoyer l'URL
+// Récupérer la marge totale depuis Firestore
+async function recupererMargeTotale() {
+  const statsRef = doc(db, "stats", "globalStats");
+  const statsSnap = await getDoc(statsRef);
+  if (statsSnap.exists()) {
+    const margeTotale = statsSnap.data().margeTotale;
+    document.querySelector("#total-marge").textContent = margeTotale.toFixed(2);
+  } else {
+    console.error("Le document globalStats n'existe pas !");
+  }
 }
 
-// Ajouter un listener au bouton de téléchargement
-document.querySelector('#download-logs').addEventListener('click', telechargerLogs);
-
-// Gestion de l'enregistrement des ventes
-document.querySelector('#vente-form').addEventListener('submit', (e) => {
+// Gestion des ventes
+document.querySelector("#vente-form").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const produitId = parseInt(document.querySelector('#produit').value);
-  const quantite = parseInt(document.querySelector('#quantite').value);
-  const prix = parseFloat(document.querySelector('#prix').value);
+  const produitId = document.querySelector("#produit").value;
+  const quantite = parseInt(document.querySelector("#quantite").value);
+  const prixUnitaire = parseFloat(document.querySelector("#prix").value);
 
-  const produit = produits.find((p) => p.id === produitId);
+  const produitRef = doc(db, "produits", produitId);
+  const produitSnap = await getDoc(produitRef);
+  if (produitSnap.exists()) {
+    const produit = produitSnap.data();
 
-  if (produit) {
     if (produit.quantite >= quantite) {
-      // Déduction de la quantité et calcul de la marge
-      produit.quantite -= quantite;
-      const marge = (prix - produit.prixAchat) * quantite;
-      totalMarge += marge; // Mettre à jour la marge totale
+      const nouvelleQuantite = produit.quantite - quantite;
+      const marge = (prixUnitaire - produit.prixAchat) * quantite;
 
-      // Stocker la marge totale dans localStorage
-      localStorage.setItem('totalMarge', totalMarge);
+      // Mettre à jour la quantité restante
+      await updateDoc(produitRef, { quantite: nouvelleQuantite });
 
-      // Ajouter la vente
-      ventes.push({ produitId, quantite, prix, marge });
-      localStorage.setItem('produits', JSON.stringify(produits));
-      localStorage.setItem('ventes', JSON.stringify(ventes));
+      // Incrémenter la marge totale
+      await incrementerMarge(marge);
 
-      // Ajouter un log pour la vente
-      ajouterLog(produit, quantite, prix, marge);
+      // Recharger les données
+      await chargerProduits();
+      await recupererMargeTotale();
 
-      // Mettre à jour l'affichage
-      afficherProduits();
-      document.querySelector('#total-marge').textContent = totalMarge.toFixed(2);
-
-      // Réinitialiser le formulaire
+      alert("Vente enregistrée avec succès !");
       e.target.reset();
     } else {
-      alert('Quantité insuffisante.');
+      alert("Quantité insuffisante pour effectuer la vente.");
     }
   } else {
-    alert('Produit non valide.');
+    alert("Produit introuvable.");
   }
 });
 
-// Initialisation au chargement
-afficherProduits();
-document.querySelector('#total-marge').textContent = totalMarge.toFixed(2);
-
-
-// Ajouter un listener au bouton de téléchargement
-document.querySelector('#download-logs').addEventListener('click', telechargerLogs);
-
+// Initialisation
+await chargerProduits();
+await recupererMargeTotale();

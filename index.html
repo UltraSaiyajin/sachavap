@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion des Produits</title>
+  <title>Gestion de Stock</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Suivi des Produits et Ventes</h1>
+    <h1>Suivi des produits et ventes</h1>
 
     <!-- Section Produits -->
     <section id="produits">
@@ -21,7 +21,7 @@
           </tr>
         </thead>
         <tbody>
-          <!-- Produits générés ici -->
+          <!-- Les produits seront ajoutés ici via JS -->
         </tbody>
       </table>
     </section>
@@ -48,12 +48,11 @@
       <h2>Résumé</h2>
       <p>Total Marges : <span id="total-marge">0</span> €</p>
     </section>
-    <section id="logs">
-        <h2>Logs</h2>
-        <button id="download-logs">Télécharger les Logs</button>
-      </section>
-      
   </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
