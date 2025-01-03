@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc,getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc,getDoc, updateDoc, increment,addDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 
   const firebaseConfig = {
