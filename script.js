@@ -2,15 +2,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebas
 import { getFirestore, collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 
-// Configuration Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyD9iuzpUaZq06tTyuEkZHFcNC3AVp18anA",
-  authDomain: "sachavap-44007.firebaseapp.com",
-  projectId: "sachavap-44007",
-  storageBucket: "sachavap-44007.firebasestorage.app",
-  messagingSenderId: "928067730354",
-  appId: "1:928067730354:web:52b306f821d1f9810742ab"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyDntXwsq3L_-gam8AgbspWkuyjLcWwuT0s",
+    authDomain: "sachavap-13576.firebaseapp.com",
+    projectId: "sachavap-13576",
+    storageBucket: "sachavap-13576.firebasestorage.app",
+    messagingSenderId: "678876211657",
+    appId: "1:678876211657:web:7a398b327934bfb91e2018"
+  };
 
 // Initialisation Firebase
 const app = initializeApp(firebaseConfig);
