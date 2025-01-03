@@ -87,6 +87,38 @@ async function incrementerStatsVente(quantite, montant) {
   }
 }
 
+// Fonction pour récupérer et afficher les logs des ventes
+async function chargerLogs() {
+  try {
+    const logsRef = collection(db, "logs");
+    const snapshot = await getDocs(logsRef);
+
+    const logs = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    // Affichage des logs dans le tableau HTML
+    const logsTable = document.querySelector("#logs-table");
+    logsTable.innerHTML = ""; // Réinitialiser la table
+
+    logs.forEach(log => {
+      const row = `
+        <tr>
+          <td>${log.produit}</td>
+          <td>${log.quantite}</td>
+          <td>${log.prixUnitaire.toFixed(2)}</td>
+          <td>${new Date(log.date).toLocaleString()}</td>
+        </tr>
+      `;
+      logsTable.insertAdjacentHTML("beforeend", row);
+    });
+
+    console.log("Logs chargés :", logs);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des logs :", error);
+  }
+}
 
 // Fonction pour incrémenter la marge totale dans Firestore
 async function incrementerMarge(marge) {
@@ -175,4 +207,8 @@ document.querySelector("#vente-form").addEventListener("submit", async (e) => {
 window.onload = async () => {
   await chargerProduits();
   await recupererStatsResume();
+  await chargerLogs(); // Charger les logs
 };
+
+// Appeler après une vente réussie
+await chargerLogs();
