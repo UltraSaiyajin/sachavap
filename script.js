@@ -18,7 +18,7 @@ const db = getFirestore(app);
 // Fonction pour récupérer et afficher les produits
 async function chargerProduits() {
   try {
-    const produitsRef = collection(db, "produits"); // Référence à la collection "produits"
+    const produitsRef = collection(db, "produits");
     const snapshot = await getDocs(produitsRef);
 
     const produits = snapshot.docs.map(doc => ({
@@ -58,7 +58,7 @@ async function chargerProduits() {
 async function ajouterLogVente(produitNom, quantite, prixUnitaire) {
   try {
     const logsRef = collection(db, "logs");
-    const date = new Date().toISOString(); // Format de la date ISO 8601
+    const date = new Date().toISOString();
     await addDoc(logsRef, {
       produit: produitNom,
       quantite: quantite,
@@ -68,22 +68,6 @@ async function ajouterLogVente(produitNom, quantite, prixUnitaire) {
     console.log(`Log ajouté : ${produitNom}, Quantité : ${quantite}, Prix : ${prixUnitaire}, Date : ${date}`);
   } catch (error) {
     console.error("Erreur lors de l'ajout du log de vente :", error);
-  }
-}
-
-
-// Fonction pour incrémenter les statistiques de vente
-async function incrementerStatsVente(quantite, montant) {
-  try {
-    console.log(`Quantité vendue : ${quantite}, Montant encaissé : ${montant}`);
-    const statsRef = doc(db, "stats", "globalStats");
-    await updateDoc(statsRef, {
-      produitsVendus: increment(quantite),
-      montantTotal: increment(montant),
-    });
-    console.log(`Statistiques mises à jour : +${quantite} produits, +${montant} €`);
-  } catch (error) {
-    console.error("Erreur lors de la mise à jour des statistiques de vente :", error);
   }
 }
 
@@ -98,7 +82,6 @@ async function chargerLogs() {
       ...doc.data(),
     }));
 
-    // Affichage des logs dans le tableau HTML
     const logsTable = document.querySelector("#logs-table");
     logsTable.innerHTML = ""; // Réinitialiser la table
 
@@ -133,6 +116,20 @@ async function incrementerMarge(marge) {
   }
 }
 
+// Fonction pour incrémenter les statistiques de vente
+async function incrementerStatsVente(quantite, montant) {
+  try {
+    const statsRef = doc(db, "stats", "globalStats");
+    await updateDoc(statsRef, {
+      produitsVendus: increment(quantite), // Incrémente le nombre de produits vendus
+      montantTotal: increment(montant),   // Incrémente le montant total encaissé
+    });
+    console.log(`Statistiques mises à jour : +${quantite} produits, +${montant} €`);
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour des statistiques de vente :", error);
+  }
+}
+
 // Fonction pour récupérer et afficher les statistiques
 async function recupererStatsResume() {
   try {
@@ -141,12 +138,12 @@ async function recupererStatsResume() {
 
     if (statsSnap.exists()) {
       const stats = statsSnap.data();
-      document.querySelector("#total-marge").textContent = stats.margeTotale.toFixed(2);
-      document.querySelector("#total-produits-vendus").textContent = stats.produitsVendus;
-      document.querySelector("#total-montant").textContent = stats.montantTotal.toFixed(2);
+      document.querySelector("#total-marge").textContent = stats.margeTotale ? stats.margeTotale.toFixed(2) : 0;
+      document.querySelector("#total-produits-vendus").textContent = stats.produitsVendus ? stats.produitsVendus : 0;
+      document.querySelector("#total-montant").textContent = stats.montantTotal ? stats.montantTotal.toFixed(2) : 0;
       console.log("Statistiques Résumé :", stats);
     } else {
-      console.error("Le document globalStats n'existe pas !");
+      console.error("Le document globalStats n'existe pas dans Firestore !");
     }
   } catch (error) {
     console.error("Erreur lors de la récupération des statistiques de résumé :", error);
@@ -173,22 +170,14 @@ document.querySelector("#vente-form").addEventListener("submit", async (e) => {
         const marge = (prixUnitaire - produit.prixAchat) * quantite;
         const montantVente = quantite * prixUnitaire;
 
-        // Mettre à jour la quantité dans Firestore
         await updateDoc(produitRef, { quantite: nouvelleQuantite });
-
-        // Mettre à jour la marge totale
         await incrementerMarge(marge);
-
-        // Mettre à jour les statistiques de vente
         await incrementerStatsVente(quantite, montantVente);
-
-        // Ajouter un log de la vente
         await ajouterLogVente(produit.nom, quantite, prixUnitaire);
 
-
-        // Recharger les produits et la marge totale
         await chargerProduits();
         await recupererStatsResume();
+        await chargerLogs();
 
         alert("Vente enregistrée avec succès !");
         e.target.reset();
@@ -207,8 +196,5 @@ document.querySelector("#vente-form").addEventListener("submit", async (e) => {
 window.onload = async () => {
   await chargerProduits();
   await recupererStatsResume();
-  await chargerLogs(); // Charger les logs
+  await chargerLogs();
 };
-
-// Appeler après une vente réussie
-await chargerLogs();
