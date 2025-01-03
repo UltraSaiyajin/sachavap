@@ -26,6 +26,7 @@ async function chargerProduits() {
       ...doc.data(),
     }));
 
+    // Affichage des produits dans le tableau HTML
     const tableBody = document.querySelector("#produits-table tbody");
     tableBody.innerHTML = ""; // Réinitialiser le tableau
 
@@ -34,10 +35,17 @@ async function chargerProduits() {
         <tr>
           <td>${produit.nom}</td>
           <td>${produit.quantite}</td>
-          <td>${produit.prixAchat} €</td>
         </tr>
       `;
       tableBody.insertAdjacentHTML("beforeend", row);
+    });
+
+    // Mise à jour de la liste déroulante des produits
+    const produitSelect = document.querySelector("#produit");
+    produitSelect.innerHTML = ""; // Réinitialiser la liste déroulante
+    produits.forEach(produit => {
+      const option = `<option value="${produit.id}">${produit.nom}</option>`;
+      produitSelect.insertAdjacentHTML("beforeend", option);
     });
 
     console.log("Produits chargés :", produits);
@@ -45,6 +53,7 @@ async function chargerProduits() {
     console.error("Erreur lors de la récupération des produits :", error);
   }
 }
+
 
 // Fonction pour incrémenter la marge totale dans Firestore
 async function incrementerMarge(marge) {
