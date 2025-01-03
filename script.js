@@ -3,41 +3,43 @@ import { getFirestore, collection, doc, getDocs, getDoc, updateDoc, increment } 
 
 // Configuration Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyD9iuzpUaZq06tTyuEkZHFcNC3AVp18anA",
-    authDomain: "sachavap-44007.firebaseapp.com",
-    projectId: "sachavap-44007",
-    storageBucket: "sachavap-44007.firebasestorage.app",
-    messagingSenderId: "928067730354",
-    appId: "1:928067730354:web:52b306f821d1f9810742ab"
+    apiKey: "VOTRE_API_KEY",
+    authDomain: "VOTRE_PROJECT.firebaseapp.com",
+    projectId: "VOTRE_PROJECT",
   };
-
-// Initialisation Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Charger les produits depuis Firestore
-async function chargerProduits() {
-    const produitsRef = collection(db, "produits");
-    const snapshot = await getDocs(produitsRef);
+  
+  // Initialisation Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  
+  // Fonction pour récupérer les produits
+  async function chargerProduits() {
+    const produitsRef = db.collection("produits");
+    const snapshot = await produitsRef.get();
+  
     const produits = snapshot.docs.map(doc => ({
-      id: doc.id, // Utiliser l'ID comme nom
+      id: doc.id,
       ...doc.data()
     }));
   
     const tableBody = document.querySelector("#produits-table tbody");
-    tableBody.innerHTML = "";
+    tableBody.innerHTML = ""; // Réinitialiser le tableau
   
     produits.forEach(produit => {
       const row = `
         <tr>
-          <td>${produit.id}</td> <!-- Utiliser l'ID ici -->
+          <td>${produit.nom}</td>
           <td>${produit.quantite}</td>
         </tr>
       `;
       tableBody.insertAdjacentHTML("beforeend", row);
     });
   }
-
+  
+  // Charger les produits lors du chargement de la page
+  window.onload = async () => {
+    await chargerProduits();
+  };
 // Mettre à jour la marge totale dans Firestore
 async function incrementerMarge(marge) {
   const statsRef = doc(db, "stats", "globalStats");
