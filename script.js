@@ -1,16 +1,20 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js";
 import { getFirestore, collection, doc, getDocs, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js";
 
-// Configuration Firebase
+// Configuration Firebase (remplacez par vos informations Firebase)
 const firebaseConfig = {
-    apiKey: "VOTRE_API_KEY",
-    authDomain: "VOTRE_PROJECT.firebaseapp.com",
-    projectId: "VOTRE_PROJECT",
-  };
-  
-  // Initialisation Firebase
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  apiKey: "AIzaSyD9iuzpUaZq06tTyuEkZHFcNC3AVp18anA",
+  authDomain: "sachavap-44007.firebaseapp.com",
+  projectId: "sachavap-44007",
+  storageBucket: "sachavap-44007.firebasestorage.app",
+  messagingSenderId: "928067730354",
+  appId: "1:928067730354:web:52b306f821d1f9810742ab"
+};
+
+// Initialisation Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
   
   // Fonction pour récupérer les produits
   async function chargerProduits() {
