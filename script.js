@@ -1,7 +1,7 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
-// Configuration Firebase (remplacez par vos informations Firebase)
+// Configuration Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyD9iuzpUaZq06tTyuEkZHFcNC3AVp18anA",
   authDomain: "sachavap-44007.firebaseapp.com",
@@ -12,8 +12,23 @@ const firebaseConfig = {
 };
 
 // Initialisation Firebase
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Fonction pour récupérer les produits
+async function chargerProduits() {
+  const produitsRef = collection(db, "produits");
+  const snapshot = await getDocs(produitsRef);
+
+  const produits = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+
+  console.log("Produits Firestore :", produits);
+}
+
+chargerProduits();
 
   
 async function chargerProduits() {
