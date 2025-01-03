@@ -57,19 +57,20 @@ async function chargerProduits() {
 // Fonction pour ajouter un log de vente
 async function ajouterLogVente(produitNom, quantite, prixUnitaire) {
   try {
-    const logsRef = collection(db, "logs");
-    const date = new Date().toISOString();
+    const logsRef = collection(db, "logs"); // Référence à la collection "logs"
+    const date = new Date().toISOString(); // Date au format ISO
     await addDoc(logsRef, {
       produit: produitNom,
       quantite: quantite,
-      prixUnitaire: prixUnitaire,
+      prixUnitaire: parseFloat(prixUnitaire), // Conversion explicite en nombre
       date: date,
     });
-    console.log(`Log ajouté : ${produitNom}, Quantité : ${quantite}, Prix : ${prixUnitaire}, Date : ${date}`);
+    console.log(`Log ajouté : Produit = ${produitNom}, Quantité = ${quantite}, Prix = ${prixUnitaire}, Date = ${date}`);
   } catch (error) {
     console.error("Erreur lors de l'ajout du log de vente :", error);
   }
 }
+
 
 // Fonction pour récupérer et afficher les logs des ventes
 async function chargerLogs() {
