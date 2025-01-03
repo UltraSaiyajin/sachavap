@@ -16,29 +16,42 @@ const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
   
-  // Fonction pour récupérer les produits
-  async function chargerProduits() {
+async function chargerProduits() {
+  try {
     const produitsRef = db.collection("produits");
     const snapshot = await produitsRef.get();
-  
+
     const produits = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
+      id: doc.id, // ID du document
+      ...doc.data() // Données du document
     }));
-  
+
+    // Affichage des produits dans le tableau HTML
     const tableBody = document.querySelector("#produits-table tbody");
-    tableBody.innerHTML = ""; // Réinitialiser le tableau
-  
+    tableBody.innerHTML = ""; // Vider le tableau avant d'ajouter les nouvelles données
+
     produits.forEach(produit => {
       const row = `
         <tr>
           <td>${produit.nom}</td>
           <td>${produit.quantite}</td>
+          <td>${produit.prixAchat} €</td>
         </tr>
       `;
       tableBody.insertAdjacentHTML("beforeend", row);
     });
+
+    console.log("Produits chargés avec succès :", produits);
+  } catch (error) {
+    console.error("Erreur lors du chargement des produits :", error);
   }
+}
+
+// Charger les produits lors du chargement de la page
+window.onload = async () => {
+  await chargerProduits();
+};
+
   
   // Charger les produits lors du chargement de la page
   window.onload = async () => {
