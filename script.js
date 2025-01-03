@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc,getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 
   const firebaseConfig = {
@@ -53,6 +53,7 @@ async function chargerProduits() {
     console.error("Erreur lors de la récupération des produits :", error);
   }
 }
+
 
 
 // Fonction pour incrémenter la marge totale dans Firestore
