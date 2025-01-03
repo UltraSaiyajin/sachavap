@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
 
 // Configuration Firebase
 const firebaseConfig = {
@@ -15,35 +16,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Fonction pour récupérer les produits
-async function chargerProduits() {
-  const produitsRef = collection(db, "produits");
-  const snapshot = await getDocs(produitsRef);
-
-  const produits = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-
-  console.log("Produits Firestore :", produits);
-}
-
-chargerProduits();
-
-  
+// Fonction pour récupérer et afficher les produits
 async function chargerProduits() {
   try {
-    const produitsRef = db.collection("produits");
-    const snapshot = await produitsRef.get();
+    const produitsRef = collection(db, "produits"); // Référence à la collection "produits"
+    const snapshot = await getDocs(produitsRef);
 
     const produits = snapshot.docs.map(doc => ({
-      id: doc.id, // ID du document
-      ...doc.data() // Données du document
+      id: doc.id,
+      ...doc.data(),
     }));
 
-    // Affichage des produits dans le tableau HTML
     const tableBody = document.querySelector("#produits-table tbody");
-    tableBody.innerHTML = ""; // Vider le tableau avant d'ajouter les nouvelles données
+    tableBody.innerHTML = ""; // Réinitialiser le tableau
 
     produits.forEach(produit => {
       const row = `
@@ -56,39 +41,39 @@ async function chargerProduits() {
       tableBody.insertAdjacentHTML("beforeend", row);
     });
 
-    console.log("Produits chargés avec succès :", produits);
+    console.log("Produits chargés :", produits);
   } catch (error) {
-    console.error("Erreur lors du chargement des produits :", error);
+    console.error("Erreur lors de la récupération des produits :", error);
   }
 }
 
-// Charger les produits lors du chargement de la page
-window.onload = async () => {
-  await chargerProduits();
-};
-
-  
-  // Charger les produits lors du chargement de la page
-  window.onload = async () => {
-    await chargerProduits();
-  };
-// Mettre à jour la marge totale dans Firestore
+// Fonction pour incrémenter la marge totale dans Firestore
 async function incrementerMarge(marge) {
-  const statsRef = doc(db, "stats", "globalStats");
-  await updateDoc(statsRef, {
-    margeTotale: increment(marge),
-  });
+  try {
+    const statsRef = doc(db, "stats", "globalStats");
+    await updateDoc(statsRef, {
+      margeTotale: increment(marge),
+    });
+    console.log(`Marge totale incrémentée de ${marge} €`);
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de la marge totale :", error);
+  }
 }
 
-// Récupérer la marge totale depuis Firestore
+// Fonction pour récupérer et afficher la marge totale
 async function recupererMargeTotale() {
-  const statsRef = doc(db, "stats", "globalStats");
-  const statsSnap = await getDoc(statsRef);
-  if (statsSnap.exists()) {
-    const margeTotale = statsSnap.data().margeTotale;
-    document.querySelector("#total-marge").textContent = margeTotale.toFixed(2);
-  } else {
-    console.error("Le document globalStats n'existe pas !");
+  try {
+    const statsRef = doc(db, "stats", "globalStats");
+    const statsSnap = await getDoc(statsRef);
+    if (statsSnap.exists()) {
+      const margeTotale = statsSnap.data().margeTotale;
+      document.querySelector("#total-marge").textContent = margeTotale.toFixed(2);
+      console.log("Marge totale :", margeTotale);
+    } else {
+      console.error("Le document globalStats n'existe pas !");
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la marge totale :", error);
   }
 }
 
@@ -100,35 +85,42 @@ document.querySelector("#vente-form").addEventListener("submit", async (e) => {
   const quantite = parseInt(document.querySelector("#quantite").value);
   const prixUnitaire = parseFloat(document.querySelector("#prix").value);
 
-  const produitRef = doc(db, "produits", produitId);
-  const produitSnap = await getDoc(produitRef);
-  if (produitSnap.exists()) {
-    const produit = produitSnap.data();
+  try {
+    const produitRef = doc(db, "produits", produitId);
+    const produitSnap = await getDoc(produitRef);
 
-    if (produit.quantite >= quantite) {
-      const nouvelleQuantite = produit.quantite - quantite;
-      const marge = (prixUnitaire - produit.prixAchat) * quantite;
+    if (produitSnap.exists()) {
+      const produit = produitSnap.data();
 
-      // Mettre à jour la quantité restante
-      await updateDoc(produitRef, { quantite: nouvelleQuantite });
+      if (produit.quantite >= quantite) {
+        const nouvelleQuantite = produit.quantite - quantite;
+        const marge = (prixUnitaire - produit.prixAchat) * quantite;
 
-      // Incrémenter la marge totale
-      await incrementerMarge(marge);
+        // Mettre à jour la quantité dans Firestore
+        await updateDoc(produitRef, { quantite: nouvelleQuantite });
 
-      // Recharger les données
-      await chargerProduits();
-      await recupererMargeTotale();
+        // Mettre à jour la marge totale
+        await incrementerMarge(marge);
 
-      alert("Vente enregistrée avec succès !");
-      e.target.reset();
+        // Recharger les produits et la marge totale
+        await chargerProduits();
+        await recupererMargeTotale();
+
+        alert("Vente enregistrée avec succès !");
+        e.target.reset();
+      } else {
+        alert("Quantité insuffisante pour effectuer la vente.");
+      }
     } else {
-      alert("Quantité insuffisante pour effectuer la vente.");
+      alert("Produit introuvable.");
     }
-  } else {
-    alert("Produit introuvable.");
+  } catch (error) {
+    console.error("Erreur lors de l'enregistrement de la vente :", error);
   }
 });
 
-// Initialisation
-await chargerProduits();
-await recupererMargeTotale();
+// Initialisation au chargement de la page
+window.onload = async () => {
+  await chargerProduits();
+  await recupererMargeTotale();
+};
