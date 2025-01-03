@@ -54,7 +54,19 @@ async function chargerProduits() {
   }
 }
 
-
+// Fonction pour incrémenter les statistiques de vente
+async function incrementerStatsVente(quantite, montant) {
+  try {
+    const statsRef = doc(db, "stats", "globalStats");
+    await updateDoc(statsRef, {
+      produitsVendus: increment(quantite), // Incrémente le nombre de produits vendus
+      montantTotal: increment(montant),   // Incrémente le montant total encaissé
+    });
+    console.log(`Statistiques mises à jour : +${quantite} produits, +${montant} €`);
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour des statistiques de vente :", error);
+  }
+}
 
 // Fonction pour incrémenter la marge totale dans Firestore
 async function incrementerMarge(marge) {
@@ -69,20 +81,23 @@ async function incrementerMarge(marge) {
   }
 }
 
-// Fonction pour récupérer et afficher la marge totale
-async function recupererMargeTotale() {
+// Fonction pour récupérer et afficher les statistiques
+async function recupererStatsResume() {
   try {
     const statsRef = doc(db, "stats", "globalStats");
     const statsSnap = await getDoc(statsRef);
+
     if (statsSnap.exists()) {
-      const margeTotale = statsSnap.data().margeTotale;
-      document.querySelector("#total-marge").textContent = margeTotale.toFixed(2);
-      console.log("Marge totale :", margeTotale);
+      const stats = statsSnap.data();
+      document.querySelector("#total-marge").textContent = stats.margeTotale.toFixed(2);
+      document.querySelector("#total-produits-vendus").textContent = stats.produitsVendus;
+      document.querySelector("#total-montant").textContent = stats.montantTotal.toFixed(2);
+      console.log("Statistiques Résumé :", stats);
     } else {
       console.error("Le document globalStats n'existe pas !");
     }
   } catch (error) {
-    console.error("Erreur lors de la récupération de la marge totale :", error);
+    console.error("Erreur lors de la récupération des statistiques de résumé :", error);
   }
 }
 
@@ -104,6 +119,7 @@ document.querySelector("#vente-form").addEventListener("submit", async (e) => {
       if (produit.quantite >= quantite) {
         const nouvelleQuantite = produit.quantite - quantite;
         const marge = (prixUnitaire - produit.prixAchat) * quantite;
+        const montantVente = quantite * prixUnitaire;
 
         // Mettre à jour la quantité dans Firestore
         await updateDoc(produitRef, { quantite: nouvelleQuantite });
@@ -111,9 +127,12 @@ document.querySelector("#vente-form").addEventListener("submit", async (e) => {
         // Mettre à jour la marge totale
         await incrementerMarge(marge);
 
+        // Mettre à jour les statistiques de vente
+        await incrementerStatsVente(quantite, montantVente);
+
         // Recharger les produits et la marge totale
         await chargerProduits();
-        await recupererMargeTotale();
+        await recupererStatsResume();
 
         alert("Vente enregistrée avec succès !");
         e.target.reset();
@@ -131,5 +150,5 @@ document.querySelector("#vente-form").addEventListener("submit", async (e) => {
 // Initialisation au chargement de la page
 window.onload = async () => {
   await chargerProduits();
-  await recupererMargeTotale();
+  await recupererStatsResume();
 };
