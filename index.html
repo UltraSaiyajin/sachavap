@@ -51,10 +51,25 @@
   </div>
 
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js"></script>
-
-  <script type="module" src="script.js"></script>
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDntXwsq3L_-gam8AgbspWkuyjLcWwuT0s",
+      authDomain: "sachavap-13576.firebaseapp.com",
+      projectId: "sachavap-13576",
+      storageBucket: "sachavap-13576.firebasestorage.app",
+      messagingSenderId: "678876211657",
+      appId: "1:678876211657:web:7a398b327934bfb91e2018"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+  </script>
 
 </body>
 </html>
