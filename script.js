@@ -57,16 +57,18 @@ async function chargerProduits() {
 // Fonction pour incrémenter les statistiques de vente
 async function incrementerStatsVente(quantite, montant) {
   try {
+    console.log(`Quantité vendue : ${quantite}, Montant encaissé : ${montant}`);
     const statsRef = doc(db, "stats", "globalStats");
     await updateDoc(statsRef, {
-      produitsVendus: increment(quantite), // Incrémente le nombre de produits vendus
-      montantTotal: increment(montant),   // Incrémente le montant total encaissé
+      produitsVendus: increment(quantite),
+      montantTotal: increment(montant),
     });
     console.log(`Statistiques mises à jour : +${quantite} produits, +${montant} €`);
   } catch (error) {
     console.error("Erreur lors de la mise à jour des statistiques de vente :", error);
   }
 }
+
 
 // Fonction pour incrémenter la marge totale dans Firestore
 async function incrementerMarge(marge) {
