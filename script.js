@@ -54,6 +54,24 @@ async function chargerProduits() {
   }
 }
 
+// Fonction pour ajouter un log de vente
+async function ajouterLogVente(produitNom, quantite, prixUnitaire) {
+  try {
+    const logsRef = collection(db, "logs");
+    const date = new Date().toISOString(); // Format de la date ISO 8601
+    await addDoc(logsRef, {
+      produit: produitNom,
+      quantite: quantite,
+      prixUnitaire: prixUnitaire,
+      date: date,
+    });
+    console.log(`Log ajouté : ${produitNom}, Quantité : ${quantite}, Prix : ${prixUnitaire}, Date : ${date}`);
+  } catch (error) {
+    console.error("Erreur lors de l'ajout du log de vente :", error);
+  }
+}
+
+
 // Fonction pour incrémenter les statistiques de vente
 async function incrementerStatsVente(quantite, montant) {
   try {
@@ -131,6 +149,10 @@ document.querySelector("#vente-form").addEventListener("submit", async (e) => {
 
         // Mettre à jour les statistiques de vente
         await incrementerStatsVente(quantite, montantVente);
+
+        // Ajouter un log de la vente
+        await ajouterLogVente(produit.nom, quantite, prixUnitaire);
+
 
         // Recharger les produits et la marge totale
         await chargerProduits();
